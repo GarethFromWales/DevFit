@@ -31,6 +31,15 @@ def update_pullups():
         show_alert("Pullups", pullups)
     root.after(pullup_interval, update_pullups)  # Schedule the function to be called based on the interval
 
+# Function to update the leg raise count
+def update_leg_raises():
+    leg_raises = int(leg_raises_count.get().split(": ")[1])
+    leg_raises += 1
+    leg_raises_count.set(f"Leg Raises: {leg_raises}")
+    if leg_raises == 30:
+        show_alert("Leg Raises", leg_raises)
+    root.after(leg_raise_interval, update_leg_raises)  # Schedule the function to be called based on the interval
+
 # Function to reset the squat count and store the total
 def reset_squats():
     total_squats = int(squats_count.get().split(": ")[1])
@@ -49,6 +58,12 @@ def reset_pullups():
     store_total("pullups", total_pullups)
     pullups_count.set("Pullups: 0")
 
+# Function to reset the leg raise count and store the total
+def reset_leg_raises():
+    total_leg_raises = int(leg_raises_count.get().split(": ")[1])
+    store_total("leg raises", total_leg_raises)
+    leg_raises_count.set("Leg Raises: 0")
+
 # Function to store the total counts in a JSON file
 def store_total(exercise, count):
     date_str = datetime.now().strftime("%Y-%m-%d")
@@ -60,7 +75,7 @@ def store_total(exercise, count):
         data = {}
     
     if date_str not in data:
-        data[date_str] = {"squats": 0, "pushups": 0, "pullups": 0}
+        data[date_str] = {"squats": 0, "pushups": 0, "pullups": 0, "leg raises": 0}
     
     data[date_str][exercise] += count
     
@@ -118,19 +133,22 @@ def show_settings():
 
 # Function to set the exercise level
 def set_level(level, show_settings = True):
-    global squat_interval, pushup_interval, pullup_interval
+    global squat_interval, pushup_interval, pullup_interval, leg_raise_interval
     if level == "Beginner":
         squat_interval = 600000  # 10 minutes
         pushup_interval = 1200000  # 20 minutes
         pullup_interval = 1200000  # 20 minutes
+        leg_raise_interval = 1200000  # 20 minutes
     elif level == "Intermediate":
         squat_interval = 360000  # 6 minutes
         pushup_interval = 720000  # 12 minutes
         pullup_interval = 720000  # 12 minutes
+        leg_raise_interval = 720000  # 12 minutes
     elif level == "Advanced":
         squat_interval = 180000  # 3 minutes
         pushup_interval = 360000  # 6 minutes
         pullup_interval = 360000  # 6 minutes
+        leg_raise_interval = 360000  # 6 minutes
     
     if show_settings :
         save_level(level)
@@ -178,7 +196,7 @@ def show_statistics():
                         continue
                     if date_str in data:
                         totals = data[date_str]
-                        stats_message += f"{day}: Squats: {totals['squats']}, Pushups: {totals['pushups']}, Pullups: {totals['pullups']}\n"
+                        stats_message += f"{day}: Squats: {totals['squats']}, Pushups: {totals['pushups']}, Pullups: {totals['pullups']}, Leg Raises: {totals['leg raises']}\n"
                     else:
                         if weekday == 5 or weekday == 6:  # Saturday or Sunday
                             stats_message += f"{day}: Weekend\n"
@@ -239,7 +257,7 @@ def center_window(window, width, height):
 
 # Create the main window
 root = tk.Tk()
-root.title("Exercise Tracker")
+root.title("DevFit")
 root.overrideredirect(True)  # Remove the title bar
 root.attributes("-topmost", True)  # Keep the window on top of all other windows
 
@@ -251,11 +269,13 @@ root.bind("<B1-Motion>", drag_window)
 squats_count = tk.StringVar()
 pushups_count = tk.StringVar()
 pullups_count = tk.StringVar()
+leg_raises_count = tk.StringVar()
 
 # Initialize the counts
 squats_count.set("Squats: 0")
 pushups_count.set("Pushups: 0")
 pullups_count.set("Pullups: 0")
+leg_raises_count.set("Leg Raises: 0")
 
 # Create and place the labels and buttons
 frame_squats = tk.Frame(root)
@@ -272,6 +292,11 @@ frame_pullups = tk.Frame(root)
 frame_pullups.pack(fill=tk.X)
 tk.Label(frame_pullups, textvariable=pullups_count).pack(side=tk.LEFT)
 tk.Button(frame_pullups, text="✔", command=reset_pullups).pack(side=tk.RIGHT)
+
+frame_leg_raises = tk.Frame(root)
+frame_leg_raises.pack(fill=tk.X)
+tk.Label(frame_leg_raises, textvariable=leg_raises_count).pack(side=tk.LEFT)
+tk.Button(frame_leg_raises, text="✔", command=reset_leg_raises).pack(side=tk.RIGHT)
 
 # Create right-click menu
 menu = tk.Menu(root, tearoff=0)
@@ -290,6 +315,7 @@ root.bind("<Button-3>", show_menu)
 squat_interval = 600000  # 10 minutes
 pushup_interval = 1200000  # 20 minutes
 pullup_interval = 1200000  # 20 minutes
+leg_raise_interval = 1200000  # 20 minutes
 
 # Load the saved level and set intervals accordingly
 current_level = load_level()
@@ -299,6 +325,7 @@ set_level(current_level, False)
 update_squats()
 update_pushups()
 update_pullups()
+update_leg_raises()
 
 # Run the application
 root.mainloop()
